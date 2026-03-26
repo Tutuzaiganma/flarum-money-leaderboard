@@ -11,6 +11,7 @@ use Flarum\Http\UrlGenerator;
 
 class ListMoneyLeaderboardController extends AbstractListController{
     public $serializer = UserSerializer::class;
+    public $include = ['groups'];
     protected $url;
 
     public function __construct(UrlGenerator $url){
@@ -25,12 +26,7 @@ class ListMoneyLeaderboardController extends AbstractListController{
         $allowViewLeaderBoard = $request->getAttribute('actor')->can('moneyLeaderboard.allowViewLeaderbaord');
 
         if($allowViewLeaderBoard){
-            $moneyLeaderboardResult = User::query()
-                ->orderBy('money', 'desc')
-                ->orderBy('id')
-                ->skip($offset)
-                ->take($limit + 1)
-                ->get();
+            $moneyLeaderboardResult = User::skip($offset)->take($limit + 1)->orderBy('money', 'desc')->get();
             $hasMoreResults = $limit > 0 && $moneyLeaderboardResult->count() > $limit;
 
             if($hasMoreResults){
@@ -44,6 +40,8 @@ class ListMoneyLeaderboardController extends AbstractListController{
                 $limit,
                 $hasMoreResults?null:0
             );
+
+            $this->loadRelations($moneyLeaderboardResult, $this->extractInclude($request), $request);
 
             return $moneyLeaderboardResult;
         }
