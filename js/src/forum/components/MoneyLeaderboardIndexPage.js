@@ -65,10 +65,11 @@ export default class MoneyLeaderboardIndexPage extends Page {
               <ul class="MoneyLeaderboardList">
                 {this.moneyLeaderboardList.map((leaderboardListItem) => {
                   rankID++;
+                  const itemKey = leaderboardListItem?.id?.() || `rank-${rankID}`;
 
                   return (
-                    <li class="MoneyLeaderboardListItems">
-                      {MoneyLeaderboardListItem.component({ leaderboardListItem, rankID })}
+                    <li class="MoneyLeaderboardListItems" key={itemKey}>
+                      <MoneyLeaderboardListItem leaderboardListItem={leaderboardListItem} rankID={rankID} />
                     </li>
                   );
                 })}
@@ -107,11 +108,14 @@ export default class MoneyLeaderboardIndexPage extends Page {
 
   parseResults(results) {
     this.moreResults = !!results.payload.links && !!results.payload.links.next;
-    [].push.apply(this.moneyLeaderboardList, results);
+    const loadedUserIds = new Set(this.moneyLeaderboardList.map((item) => item?.id?.()).filter(Boolean));
+    const validResults = results.filter((item) => item && !loadedUserIds.has(item.id()));
+
+    this.moneyLeaderboardList.push(...validResults);
     this.loading = false;
     m.redraw();
 
-    return results;
+    return validResults;
   }
 
   loadResults(offset = 0, loadCount = 20) {

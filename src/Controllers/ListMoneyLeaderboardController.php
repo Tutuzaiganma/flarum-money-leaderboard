@@ -25,7 +25,12 @@ class ListMoneyLeaderboardController extends AbstractListController{
         $allowViewLeaderBoard = $request->getAttribute('actor')->can('moneyLeaderboard.allowViewLeaderbaord');
 
         if($allowViewLeaderBoard){
-            $moneyLeaderboardResult = User::skip($offset)->take($limit + 1)->orderBy('money', 'desc')->get();
+            $moneyLeaderboardResult = User::query()
+                ->orderBy('money', 'desc')
+                ->orderBy('id')
+                ->skip($offset)
+                ->take($limit + 1)
+                ->get();
             $hasMoreResults = $limit > 0 && $moneyLeaderboardResult->count() > $limit;
 
             if($hasMoreResults){
